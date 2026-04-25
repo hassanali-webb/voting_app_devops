@@ -4,11 +4,20 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "vote/**"
+      - "result/**"
+      - "worker/**"
+      - "terraform/**"
 
 jobs:
 
+  # -------------------------
+  # TEST STAGE
+  # -------------------------
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +39,7 @@ jobs:
       - run: |
           cd result
           npm install
-          npm test || echo "No tests"
+          npm test || echo "No tests found"
 
       # .NET (worker)
       - uses: actions/setup-dotnet@v4
@@ -43,6 +52,9 @@ jobs:
           dotnet build --no-restore
 
 
+  # -------------------------
+  # BUILD & PUSH DOCKER IMAGES
+  # -------------------------
   build-and-push:
     runs-on: ubuntu-latest
     needs: test
@@ -50,26 +62,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/login-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-vote:latest ./vote
-      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-result:latest ./result
-      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-worker:latest ./worker
+      - name: Build Images
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-vote:latest ./vote
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-result:latest ./result
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-worker:latest ./worker
 
-      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-vote:latest
-      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-result:latest
-      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-worker:latest
+      - name: Push Images
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-vote:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-result:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/voting-app-worker:latest
 
 
+  # -------------------------
+  # TERRAFORM (ONLY IF CHANGED)
+  # -------------------------
   terraform:
     runs-on: ubuntu-latest
     needs: build-and-push
 
-    # 🔥 THIS IS THE MAGIC LINE
-    if: contains(github.event.head_commit.message, 'terraform') || contains(join(github.event.commits.*.modified, ' '), 'terraform/')
+    # ✅ Runs ONLY when terraform folder changes
+    if: contains(github.event.head_commit.modified, 'terraform')
 
     steps:
       - name: Checkout Repo
@@ -85,7 +105,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Terraform Init (S3 backend)
+      - name: Terraform Init
         run: |
           cd terraform
           terraform init
