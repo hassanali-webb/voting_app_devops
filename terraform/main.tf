@@ -85,7 +85,7 @@ module "eks" {
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.public_subnets
-  #----
+  #----git
 
   enable_cluster_creator_admin_permissions = true
 

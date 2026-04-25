@@ -28,10 +28,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Terraform Init
+      - name: Terraform Init (with backend)
         run: |
           cd terraform
-          terraform init
+          terraform init -reconfigure
 
       - name: Terraform Plan
         run: |
