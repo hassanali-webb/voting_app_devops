@@ -91,7 +91,7 @@ module "eks" {
       max_size     = 3 # 🔥 FIXED (stable 3 nodes)
 
       # Using SPOT instances and fallback instance types to avoid InsufficientInstanceCapacity errors
-      instance_types = ["t3.micro", "t3.small", "t3.medium"]
+      instance_types = ["t3.micro"]
       ami_type       = "AL2_x86_64"
       capacity_type  = "SPOT"
 
