@@ -90,9 +90,10 @@ module "eks" {
       min_size     = 3
       max_size     = 3 # 🔥 FIXED (stable 3 nodes)
 
-      instance_types = ["t3.micro"]
+      # Using SPOT instances and fallback instance types to avoid InsufficientInstanceCapacity errors
+      instance_types = ["t3.micro", "t3.small", "t3.medium"]
       ami_type       = "AL2_x86_64"
-      capacity_type  = "ON_DEMAND"
+      capacity_type  = "SPOT"
 
       vpc_security_group_ids = [
         aws_security_group.eks_nodes_sg.id

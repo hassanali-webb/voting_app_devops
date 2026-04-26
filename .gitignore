@@ -1,6 +1,22 @@
-*.pyc
-project.lock.json
-bin/
-obj/
-.vs/
-node_modules/
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+.terraform.lock.hcl
+
+# Ignore provider binaries
+**/terraform/.terraform/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.terraform/
+*.tfstate
+*.tfstate.*
+tfplan
