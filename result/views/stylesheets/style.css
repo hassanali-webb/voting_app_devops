@@ -10,8 +10,10 @@ html,body{
   font-family: 'Open Sans';
 }
 body{
-  opacity:0;
-  transition: all 1s linear;
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family: 'Open Sans';
 }
 
 .divider{
